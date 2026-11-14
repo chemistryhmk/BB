@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест з хімії: Насичені та ненасичені вуглеводні (10 клас)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+            color: #0f172a;
+        }
+        /* Спеціальне форматування для структурних формул без дужок */
+        .chem-struct {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.15rem;
+            line-height: 1.25;
+            background-color: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.75rem;
+            padding: 0.85rem 1.25rem;
+            display: inline-block;
+            overflow-x: auto;
+            max-width: 100%;
+            color: #1e293b;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+        }
+        .chem-inline {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: #1e3a8a;
+        }
+        .option-card {
+            transition: all 0.2s ease;
+        }
+        .option-card:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between antialiased selection:bg-blue-200 selection:text-blue-900">
+
+    <!-- Верхня панель навігації та прогресу -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-20 shadow-sm">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <div class="flex items-center gap-3">
+                    <span class="text-xs font-bold uppercase tracking-wider text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md">Хімія • 10 клас</span>
+                    <h1 class="text-lg sm:text-xl font-bold text-slate-900">Насичені та ненасичені вуглеводні</h1>
+                </div>
+                <div class="flex items-center gap-3 text-sm sm:text-base font-semibold text-slate-700 bg-slate-100 px-3.5 py-1.5 rounded-xl">
+                    <span>Питання: <span id="q-counter" class="text-blue-700">1</span> / 20</span>
+                    <span class="text-slate-300">|</span>
+                    <span>Бали: <span id="score-counter" class="text-emerald-700">0</span></span>
+                </div>
+            </div>
+            <!-- Шкала прогресу -->
+            <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                <div id="progress-bar" class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: 5%"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Основний робочий контейнер -->
+    <main class="flex-grow max-w-6xl w-full mx-auto px-4 sm:px-6 py-4 sm:py-5">
+        
+        <!-- Картка запитання -->
+        <div id="quiz-container" class="bg-white rounded-2xl shadow-md border border-slate-200 p-5 sm:p-6">
+            
+            <!-- Бейдж типу завдання -->
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+                <span id="question-type-badge" class="inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold bg-indigo-50 text-indigo-800 border border-indigo-200">
+                    Вибір однієї правильної відповіді
+                </span>
+                <span id="question-topic" class="text-sm text-slate-500 font-medium">
+                    Тема: Алкани
+                </span>
+            </div>
+
+            <!-- Двоколонкова адаптивна сітка -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                <!-- Ліва/основна колонка: запитання та варіанти -->
+                <div id="question-main-col" class="lg:col-span-12">
+                    <!-- Текст запитання -->
+                    <div id="question-text" class="text-xl sm:text-2xl font-semibold text-slate-900 leading-snug mb-4"></div>
+
+                    <!-- Контейнер для варіантів відповідей -->
+                    <div id="options-container" class="grid grid-cols-1 md:grid-cols-2 gap-3"></div>
+
+                    <!-- Кнопки дій -->
+                    <div class="mt-5 flex flex-wrap items-center gap-3">
+                        <button id="submit-btn" class="w-full sm:w-auto px-7 py-3 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white text-lg font-bold rounded-xl shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            Перевірити відповідь
+                        </button>
+                        <button id="next-btn" class="hidden w-full sm:w-auto px-7 py-3 bg-slate-900 hover:bg-slate-800 text-white text-lg font-bold rounded-xl shadow-sm transition">
+                            Наступне питання →
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Права колонка: аналіз та правильна відповідь -->
+                <div id="feedback-box" class="hidden lg:col-span-5 p-4 sm:p-5 rounded-2xl border-2 text-base sm:text-lg leading-relaxed">
+                    <div class="flex items-center gap-2.5 font-bold text-lg sm:text-xl mb-2" id="feedback-title"></div>
+                    <div id="feedback-correct-answer" class="font-semibold mb-2.5 text-slate-900 bg-white/90 p-3 rounded-xl border border-slate-200/80 text-base sm:text-lg"></div>
+                    <div id="feedback-explanation" class="text-slate-800 text-base leading-relaxed"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Екран завершення тесту -->
+        <div id="results-container" class="hidden bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8 text-center">
+            <div class="mb-4 inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 text-3xl">
+                🎓
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">Тест завершено!</h2>
+            <p class="text-base sm:text-lg text-slate-600 mb-6">Ось ваш результат за темою «Насичені та ненасичені вуглеводні»:</p>
+            
+            <div class="inline-block bg-slate-50 border border-slate-200 rounded-2xl px-8 py-5 mb-6">
+                <div class="text-3xl sm:text-5xl font-extrabold text-blue-700 mb-1">
+                    <span id="final-score">0</span> <span class="text-xl sm:text-2xl text-slate-400 font-semibold">/ <span id="max-score">0</span> балів</span>
+                </div>
+                <div id="final-percentage" class="text-lg sm:text-xl font-semibold text-emerald-700">
+                    Успішність: 0%
+                </div>
+            </div>
+
+            <div id="summary-list" class="text-left max-w-3xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-2.5 mb-6"></div>
+
+            <button onclick="restartQuiz()" class="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white text-lg font-bold rounded-xl shadow-md transition">
+                Пройти тест ще раз
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Футер -->
+    <footer class="text-center py-3 text-xs sm:text-sm text-slate-400">
+        Хімія • 10 клас • Навчальний тренажер (рівень стандарту)
+    </footer>
+
+    <script>
+        // Допоміжна функція для відображення структурних формул без дужок
+        function renderFormulaBlock(lines) {
+            return `<div class="my-2.5"><pre class="chem-struct">${lines.join('\n')}</pre></div>`;
+        }
+
+        // База запитань (20 завдань строго за шкільною програмою 10 класу: алкани, алкени, алкіни)
+        const quizData = [
+            // 1. Single (правильна: індекс 2 - В)
+            {
+                id: 1,
+                type: 'single',
+                topic: 'Загальні формули вуглеводнів',
+                question: 'Укажіть загальну формулу гомологічного ряду алкінів:',
+                options: [
+                    '<span class="chem-inline">CₙH₂ₙ₊₂</span>',
+                    '<span class="chem-inline">CₙH₂ₙ</span>',
+                    '<span class="chem-inline">CₙH₂ₙ₋₂</span>',
+                    '<span class="chem-inline">CₙH₂ₙ₋₆</span>'
+                ],
+                correct: 2,
+                explanation: 'Алкіни — це ненасичені вуглеводні з одним потрійним зв’язком, тому в їхній молекулі на 4 атоми Гідрогену менше, ніж у відповідних алканів (<span class="chem-inline">CₙH₂ₙ₊₂</span>). Їхня загальна формула — <span class="chem-inline">CₙH₂ₙ₋₂</span>.'
+            },
+
+            // 2. Single (правильна: індекс 0 - А)
+            {
+                id: 2,
+                type: 'single',
+                topic: 'Номенклатура алканів',
+                question: `Назвіть за систематичною номенклатурою IUPAC розгалужений алкан, структурна формула якого зображена нижче:
+                ${renderFormulaBlock([
+                    '      CH₃         CH₂ — CH₃',
+                    '      |           |',
+                    'CH₃ — CH — CH₂ — CH — CH₃'
+                ])}`,
+                options: [
+                    '2,4-диметилгексан',
+                    '2-метил-4-етилпентан',
+                    '3,5-диметилгексан',
+                    '2-етил-4-метилпентан'
+                ],
+                correct: 0,
+                explanation: '1. Обираємо найдовший карбоновий ланцюг: він містить 6 атомів Карбону (гексан), якщо повернути вниз/вгору на етильну групу справа.\n2. Нумеруємо зліва направо, щоб замісники отримали найменші номери (2 і 4 замість 3 і 5).\n3. Отримуємо назву: <strong>2,4-диметилгексан</strong>.'
+            },
+
+            // 3. Single (правильна: індекс 3 - Г)
+            {
+                id: 3,
+                type: 'single',
+                topic: 'Будова молекул та гібридизація',
+                question: 'Який тип гібридизації електронних орбіталей атомів Карбону характерний для молекули етену (<span class="chem-inline">C₂H₄</span>)?',
+                options: [
+                    '<span class="chem-inline">sp³</span>-гібридизація',
+                    '<span class="chem-inline">sp</span>-гібридизація',
+                    'гібридизація відсутня',
+                    '<span class="chem-inline">sp²</span>-гібридизація'
+                ],
+                correct: 3,
+                explanation: 'В алкенах (зокрема в етені) атоми Карбону при подвійному зв’язку перебувають у стані <span class="chem-inline">sp²</span>-гібридизації. Молекула має плоску будову з валентними кутами 120°.'
+            },
+
+            // 4. Multiple (правильні: індекси 0, 2, 3 — без циклоалканів, виправлено)
+            {
+                id: 4,
+                type: 'multiple',
+                topic: 'Ізомерія алкенів',
+                question: 'Оберіть <strong>три</strong> сполуки, які є структурними ізомерами <strong>пент-1-ену</strong> (<span class="chem-inline">C₅H₁₀</span>):',
+                options: [
+                    'пент-2-ен',
+                    '2-метилбутан',
+                    '2-метилбут-1-ен',
+                    '3-метилбут-1-ен',
+                    'пент-1-ин'
+                ],
+                correct: [0, 2, 3],
+                explanation: 'Молекулярна формула пент-1-ену — <span class="chem-inline">C₅H₁₀</span>. Структурні ізомери мають однаковий склад, але різне положення подвійного зв’язку або будову карбонового ланцюга:\n• <strong>Пент-2-ен</strong> (<span class="chem-inline">C₅H₁₀</span>) — ізомер положення подвійного зв’язку.\n• <strong>2-метилбут-1-ен</strong> (<span class="chem-inline">C₅H₁₀</span>) та <strong>3-метилбут-1-ен</strong> (<span class="chem-inline">C₅H₁₀</span>) — ізомери карбонового скелета.\n• 2-метилбутан (<span class="chem-inline">C₅H₁₂</span>) — насичений алкан, а пент-1-ин (<span class="chem-inline">C₅H₈</span>) — алкін.'
+            },
+
+            // 5. Matching (відповідності перемішані, суто алкани, алкени, алкіни)
+            {
+                id: 5,
+                type: 'matching',
+                topic: 'Класифікація вуглеводнів',
+                question: 'Установіть відповідність між формулою вуглеводню та його характеристикою:',
+                leftItems: [
+                    '1. <span class="chem-inline">CH₃ — CH₂ — CH₃</span>',
+                    '2. <span class="chem-inline">CH ≡ C — CH₂ — CH₃</span>',
+                    '3. <span class="chem-inline">CH₃ — CH = CH — CH₃</span>',
+                    '4. <span class="chem-inline">CH₃ — CH₂ — CH₂ — CH₃</span>'
+                ],
+                rightItems: [
+                    'А. Алкени (ненасичені з подвійним зв’язком)',
+                    'Б. Алкани (насичені, 4 атоми Карбону)',
+                    'В. Алкіни (ненасичені з потрійним зв’язком)',
+                    'Г. Алкани (насичені, 3 атоми Карбону)',
+                    'Д. Спирти'
+                ],
+                correct: { 0: 3, 1: 2, 2: 0, 3: 1 },
+                explanation: '• <span class="chem-inline">CH₃-CH₂-CH₃</span> (пропан) — насичений алкан із 3 атомами Карбону → <strong>Г</strong>.\n• <span class="chem-inline">CH≡C-CH₂-CH₃</span> (бут-1-ин) — алкін (потрійний зв’язок) → <strong>В</strong>.\n• <span class="chem-inline">CH₃-CH=CH-CH₃</span> (бут-2-ен) — алкен (подвійний зв’язок) → <strong>А</strong>.\n• <span class="chem-inline">CH₃-CH₂-CH₂-CH₃</span> (бутан) — насичений алкан із 4 атомами Карбону → <strong>Б</strong>.'
+            },
+
+            // 6. Single (правильна: індекс 1 - Б)
+            {
+                id: 6,
+                type: 'single',
+                topic: 'Номенклатура алкенів',
+                question: `Укажіть назву ненасиченого вуглеводню за номенклатурою IUPAC:
+                ${renderFormulaBlock([
+                    '            CH₃',
+                    '            |',
+                    'CH₃ — CH₂ — C = CH — CH₃'
+                ])}`,
+                options: [
+                    '3-метилпент-3-ен',
+                    '3-метилпент-2-ен',
+                    '2-етилбут-2-ен',
+                    '3-метилпентан'
+                ],
+                correct: 1,
+                explanation: '1. Найдовший ланцюг із подвійним зв’язком складається з 5 атомів Карбону (пентен).\n2. Нумеруємо справа наліво, де ближче подвійний зв’язок (після 2-го атома Карбону).\n3. Метильний радикал <span class="chem-inline">-CH₃</span> біля 3-го атома Карбону. Назва — <strong>3-метилпент-2-ен</strong>.'
+            },
+
+            // 7. Single (правильна: індекс 2 - В)
+            {
+                id: 7,
+                type: 'single',
+                topic: 'Хімічні властивості алканів',
+                question: 'Який тип хімічних реакцій є найбільш характерним для насичених вуглеводнів (алканів)?',
+                options: [
+                    'приєднання',
+                    'полімеризації',
+                    'заміщення',
+                    'гідратації'
+                ],
+                correct: 2,
+                explanation: 'В алканах усі зв’язки між атомами Карбону одинарні (насичені), тому для них характерні реакції <strong>заміщення</strong> (наприклад, хлорування на світлі) та повного окиснення (горіння).'
+            },
+
+            // 8. Multiple (правильні: індекси 1, 2)
+            {
+                id: 8,
+                type: 'multiple',
+                topic: 'Якісні реакції',
+                question: 'Оберіть <strong>два</strong> реагенти, за допомогою яких можна відрізнити <strong>етен</strong> від <strong>етану</strong> в лабораторних умовах:',
+                options: [
+                    'вапняна вода (<span class="chem-inline">Ca(OH)₂</span>)',
+                    'бромна вода (<span class="chem-inline">Br₂</span> водн.)',
+                    'водний розчин калій перманганату (<span class="chem-inline">KMnO₄</span>)',
+                    'розчин натрій гідроксиду (<span class="chem-inline">NaOH</span>)'
+                ],
+                correct: [1, 2],
+                explanation: 'Етен містить подвійний зв’язок, тому за звичайних умов знебарвлює буру <strong>бромну воду</strong> та фіолетовий розчин <strong>калій перманганату</strong>. Насичений етан із цими розчинами не реагує.'
+            },
+
+            // 9. Single (правильна: індекс 0 - А)
+            {
+                id: 9,
+                type: 'single',
+                topic: 'Правило Марковникова',
+                question: 'Який основний продукт утворюється при приєднанні гідроген броміду (<span class="chem-inline">HBr</span>) до пропену (<span class="chem-inline">CH₂=CH-CH₃</span>)?',
+                options: [
+                    '2-бромпропан',
+                    '1-бромпропан',
+                    '1,2-дибромпропан',
+                    '2-бромпропен'
+                ],
+                correct: 0,
+                explanation: 'За правилом Марковникова атом Гідрогену приєднується до більш гідрогенізованого атома Карбону (<span class="chem-inline">CH₂=</span>), а атом Брому — до менш гідрогенізованого (<span class="chem-inline">=CH-</span>). Утворюється <span class="chem-inline">CH₃-CHBr-CH₃</span> — <strong>2-бромпропан</strong>.'
+            },
+
+            // 10. Matching (відповідності перемішані)
+            {
+                id: 10,
+                type: 'matching',
+                topic: 'Способи добування вуглеводнів',
+                question: 'Установіть відповідність між вихідними речовинами та вуглеводнем, який утворюється в результаті реакції:',
+                leftItems: [
+                    '1. <span class="chem-inline">CaC₂ + 2H₂O →</span>',
+                    '2. <span class="chem-inline">CH₃COONa + NaOH (t°) →</span>',
+                    '3. <span class="chem-inline">C₂H₅OH (H₂SO₄ конц., t > 140°C) →</span>',
+                    '4. <span class="chem-inline">2CH₃Cl + 2Na →</span>'
+                ],
+                rightItems: [
+                    'А. Етен (<span class="chem-inline">C₂H₄</span>)',
+                    'Б. Етан (<span class="chem-inline">C₂H₆</span>)',
+                    'В. Пропан (<span class="chem-inline">C₃H₈</span>)',
+                    'Г. Етин (<span class="chem-inline">C₂H₂</span>)',
+                    'Д. Метан (<span class="chem-inline">CH₄</span>)'
+                ],
+                correct: { 0: 3, 1: 4, 2: 0, 3: 1 },
+                explanation: '1. Гідроліз кальцій карбіду — лабораторний спосіб добування ацетилену (<strong>Г. Етин</strong>).\n2. Сплавлення натрій ацетату з лугом дає <strong>Д. Метан</strong>.\n3. Дегідратація етанолу за температури >140°C дає <strong>А. Етен</strong>.\n4. Реакція Вюрца подовжує ланцюг удвічі — утворюється <strong>Б. Етан</strong>.'
+            },
+
+            // 11. Single (правильна: індекс 3 - Г — структурна ізомерія замість просторової)
+            {
+                id: 11,
+                type: 'single',
+                topic: 'Структурна ізомерія алкенів',
+                question: 'Яка з наведених сполук є структурним ізомером <strong>бут-1-ену</strong> (<span class="chem-inline">CH₂=CH-CH₂-CH₃</span>)?',
+                options: [
+                    'бутан',
+                    'бут-1-ин',
+                    'пропен',
+                    '2-метилпропен'
+                ],
+                correct: 3,
+                explanation: 'Бут-1-ен має формулу <span class="chem-inline">C₄H₈</span>. Таку саму молекулярну формулу має його ізомер карбонового скелета — <strong>2-метилпропен</strong> (<span class="chem-inline">CH₂=C(CH₃)-CH₃</span>). Інші варіанти мають відмінну кількість атомів Гідрогену чи Карбону.'
+            },
+
+            // 12. Multiple (правильні: індекси 0, 1, 3)
+            {
+                id: 12,
+                type: 'multiple',
+                topic: 'Хімічні властивості етину (ацетилену)',
+                question: 'Оберіть <strong>три</strong> правильні твердження щодо властивостей етину (<span class="chem-inline">C₂H₂</span>):',
+                options: [
+                    'горить на повітрі яскравим кіптявим полум’ям',
+                    'приєднує воду в присутності солей Меркурію(II) з утворенням етаналю',
+                    'молекула має зигзагоподібну будову з валентним кутом 109,5°',
+                    'здатний приєднувати два моль водню на один моль вуглеводню з утворенням етану'
+                ],
+                correct: [0, 1, 3],
+                explanation: '• Через високу масову частку Карбону (92,3%) етин горить кіптявим полум’ям (<strong>правильно</strong>).\n• Гідратація етину (реакція Кучерова) приводить до утворення етаналю (<strong>правильно</strong>).\n• Потрійний зв’язок приєднує 2 моль <span class="chem-inline">H₂</span> до утворення етану (<strong>правильно</strong>).\n• Молекула етину має <strong>лінійну</strong> будову (<span class="chem-inline">sp</span>-гібридизація, кут 180°).'
+            },
+
+            // 13. Single (правильна: індекс 1 - Б — назви алкінів через -ин)
+            {
+                id: 13,
+                type: 'single',
+                topic: 'Номенклатура алкінів',
+                question: `Укажіть систематичну назву алкіну, формула якого наведена нижче:
+                ${renderFormulaBlock([
+                    '              CH₃',
+                    '              |',
+                    'CH ≡ C — CH — CH — CH₃',
+                    '         |',
+                    '         CH₃'
+                ])}`,
+                options: [
+                    '2,3-диметилпент-4-ин',
+                    '3,4-диметилпент-1-ин',
+                    '2,3-диметилпентан',
+                    '3,4-диметилпент-1-ен'
+                ],
+                correct: 1,
+                explanation: '1. Головний ланцюг містить 5 атомів Карбону та потрійний зв’язок (пентин).\n2. Нумерацію починаємо зліва направо, де ближче розташований потрійний зв’язок (біля 1-го атома Карбону).\n3. Метильні радикали розташовані біля 3-го і 4-го атомів Карбону. Назва: <strong>3,4-диметилпент-1-ин</strong>.'
+            },
+
+            // 14. Single (правильна: індекс 2 - В)
+            {
+                id: 14,
+                type: 'single',
+                topic: 'Реакції полімеризації',
+                question: 'Яка високомолекулярна сполука утворюється внаслідок полімеризації пропену (<span class="chem-inline">CH₂=CH-CH₃</span>)?',
+                options: [
+                    'поліетилен',
+                    'полістирен',
+                    'поліпропілен',
+                    'полівінілхлорид'
+                ],
+                correct: 2,
+                explanation: 'Тривіальна назва пропену — пропілен. Під час реакції полімеризації молекули пропену сполучаються у довгий ланцюг — <strong>поліпропілен</strong>.'
+            },
+
+            // 15. Matching (відповідності перемішані — суто алкани, алкени, алкіни)
+            {
+                id: 15,
+                type: 'matching',
+                topic: 'Хімічні реакції вуглеводнів',
+                question: 'Установіть відповідність між назвою реакції (або процесу) та її хімічною суттю:',
+                leftItems: [
+                    '1. Дегідрування етану',
+                    '2. Крекінг алканів',
+                    '3. Гідрогенізація етену',
+                    '4. Тримеризація етину'
+                ],
+                rightItems: [
+                    'А. Приєднання водню з утворенням етану',
+                    'Б. Розщеплення вищих алканів на алкани й алкени з меншою кількістю Карбону',
+                    'В. Сполучення трьох молекул етину з утворенням бензену',
+                    'Г. Відщеплення водню з утворенням етену',
+                    'Д. Повне окиснення до вуглекислого газу та води'
+                ],
+                correct: { 0: 3, 1: 1, 2: 0, 3: 2 },
+                explanation: '• <strong>Дегідрування</strong> (відщеплення водню) етану дає етен (<strong>Г</strong>).\n• <strong>Крекінг</strong> — розщеплення довгих ланцюгів алканів на коротші алкани й алкени (<strong>Б</strong>).\n• <strong>Гідрогенізація</strong> — приєднання <span class="chem-inline">H₂</span> до подвійного зв’язку етену з утворенням етану (<strong>А</strong>).\n• <strong>Тримеризація</strong> етину за наявності активованого вугілля приводить до утворення бензену (<strong>В</strong>).'
+            },
+
+            // 16. Single (правильна: індекс 0 - А — замість циклоалканів)
+            {
+                id: 16,
+                type: 'single',
+                topic: 'Порівняння насичених і ненасичених вуглеводнів',
+                question: 'Яка з наведених властивостей відрізняє <strong>пропен</strong> від <strong>пропану</strong>?',
+                options: [
+                    'здатність знебарвлювати бромну воду за звичайних умов',
+                    'здатність горіти на повітрі з утворенням вуглекислого газу та води',
+                    'агрегатний стан (газ за нормальних умов)',
+                    'наявність трьох атомів Карбону в молекулі'
+                ],
+                correct: 0,
+                explanation: 'Пропен (<span class="chem-inline">C₃H₆</span>) — ненасичений вуглеводень із подвійним зв’язком, тому він легко приєднує бром і <strong>знебарвлює бромну воду</strong>. Пропан (<span class="chem-inline">C₃H₈</span>) — насичений алкан, який із бромною водою не реагує.'
+            },
+
+            // 17. Multiple (правильні: індекси 1, 3 — без циклоалканів, назва через -ин)
+            {
+                id: 17,
+                type: 'multiple',
+                topic: 'Гомологи та ізомери',
+                question: 'Оберіть <strong>дві</strong> речовини, які належать до одного гомологічного ряду з <strong>бутаном</strong>:',
+                options: [
+                    'бут-1-ин',
+                    '2-метилпропан',
+                    'бут-2-ен',
+                    '2,2-диметилпропан'
+                ],
+                correct: [1, 3],
+                explanation: 'Бутан (<span class="chem-inline">C₄H₁₀</span>) належить до гомологічного ряду алканів (<span class="chem-inline">CₙH₂ₙ₊₂</span>).\n• <strong>2-метилпропан</strong> (<span class="chem-inline">C₄H₁₀</span>) — його структурний ізомер, теж алкан.\n• <strong>2,2-диметилпропан</strong> (<span class="chem-inline">C₅H₁₂</span>) — наступний член цього ж гомологічного ряду (алкан).\nБут-1-ин (<span class="chem-inline">C₄H₆</span>) та бут-2-ен (<span class="chem-inline">C₄H₈</span>) належать до ненасичених вуглеводнів.'
+            },
+
+            // 18. Single (правильна: індекс 2 - В)
+            {
+                id: 18,
+                type: 'single',
+                topic: 'Розрахункова задача (виведення формули)',
+                question: 'Відносна густина деякого алкену за воднем дорівнює <strong>21</strong>. Визначте молекулярну формулу цього вуглеводню:',
+                options: [
+                    '<span class="chem-inline">C₂H₄</span>',
+                    '<span class="chem-inline">C₄H₈</span>',
+                    '<span class="chem-inline">C₃H₆</span>',
+                    '<span class="chem-inline">C₅H₁₀</span>'
+                ],
+                correct: 2,
+                explanation: '1. Знаходимо молярну масу алкену: <span class="chem-inline">M = D(H₂) · M(H₂) = 21 · 2 = 42 г/моль</span>.\n2. Загальна формула алкенів — <span class="chem-inline">CₙH₂ₙ</span>. Складаємо рівняння: <span class="chem-inline">12n + 2n = 42 → 14n = 42 → n = 3</span>.\n3. Формула вуглеводню — <strong><span class="chem-inline">C₃H₆</span></strong> (пропен).'
+            },
+
+            // 19. Single (правильна: індекс 3 - Г)
+            {
+                id: 19,
+                type: 'single',
+                topic: 'Розрахункова задача (об’ємні відношення)',
+                question: 'Який об’єм кисню (н.у.) необхідний для повного згоряння <strong>5 л</strong> етину (ацетилену)?<br><span class="chem-inline text-base">2C₂H₂ + 5O₂ → 4CO₂ + 2H₂O</span>',
+                options: [
+                    '5 л',
+                    '10 л',
+                    '25 л',
+                    '12,5 л'
+                ],
+                correct: 3,
+                explanation: 'За законом об’ємних відношень газів об’єми газів відносяться як коефіцієнти у рівнянні:\n<span class="chem-inline">V(C₂H₂) : V(O₂) = 2 : 5</span>.\nТому <span class="chem-inline">V(O₂) = (5 л · 5) / 2 = 12,5 л</span>.'
+            },
+
+            // 20. Matching (відповідності перемішані — без алкадієнів)
+            {
+                id: 20,
+                type: 'matching',
+                topic: 'Застосування вуглеводнів',
+                question: 'Установіть відповідність між вуглеводнем та основною галуззю його практичного застосування:',
+                leftItems: [
+                    '1. Етин (ацетилен)',
+                    '2. Етен (етилен)',
+                    '3. Метан',
+                    '4. Пропан-бутанова суміш'
+                ],
+                rightItems: [
+                    'А. Основний компонент природного газу, паливо та сировина для синтезу водню',
+                    'Б. Зріджений газ у балонах для побутових плит та автомобільного палива',
+                    'В. Газове зварювання та різання металів',
+                    'Г. Виробництво поліетилену та прискорення дозрівання плодів',
+                    'Д. Виготовлення мила та гліцеролу'
+                ],
+                correct: { 0: 2, 1: 3, 2: 0, 3: 1 },
+                explanation: '• <strong>Етин</strong> під час горіння в чистому кисні дає температуру до 3000°C, тому використовується для <strong>газового зварювання та різання металів (В)</strong>.\n• <strong>Етен</strong> є мономером для виробництва <strong>поліетилену</strong> та прискорює <strong>дозрівання плодів (Г)</strong>.\n• <strong>Метан</strong> — головна складова <strong>природного газу (А)</strong>.\n• <strong>Пропан-бутанова суміш</strong> використовується як <strong>побутовий та автомобільний газ у балонах (Б)</strong>.'
+            }
+        ];
+
+        // Стан тесту
+        let currentQuestionIndex = 0;
+        let totalScore = 0;
+        let maxPossibleScore = 0;
+        let userHistory = [];
+
+        quizData.forEach(q => {
+            maxPossibleScore += (q.type === 'single') ? 1 : 2;
+        });
+
+        // Елементи DOM
+        const qCounterEl = document.getElementById('q-counter');
+        const scoreCounterEl = document.getElementById('score-counter');
+        const progressBarEl = document.getElementById('progress-bar');
+        const typeBadgeEl = document.getElementById('question-type-badge');
+        const topicEl = document.getElementById('question-topic');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const questionMainCol = document.getElementById('question-main-col');
+        const submitBtn = document.getElementById('submit-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const feedbackBox = document.getElementById('feedback-box');
+        const feedbackTitle = document.getElementById('feedback-title');
+        const feedbackCorrectAnswer = document.getElementById('feedback-correct-answer');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+
+        const quizContainer = document.getElementById('quiz-container');
+        const resultsContainer = document.getElementById('results-container');
+
+        const letters = ['А', 'Б', 'В', 'Г', 'Д'];
+
+        // Завантаження поточного запитання
+        function loadQuestion() {
+            const q = quizData[currentQuestionIndex];
+            
+            qCounterEl.textContent = currentQuestionIndex + 1;
+            const progressPercent = ((currentQuestionIndex + 1) / quizData.length) * 100;
+            progressBarEl.style.width = `${progressPercent}%`;
+
+            topicEl.textContent = `Тема: ${q.topic}`;
+            if (q.type === 'single') {
+                typeBadgeEl.textContent = 'Вибір однієї правильної відповіді (1 бал)';
+                typeBadgeEl.className = 'inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold bg-blue-50 text-blue-800 border border-blue-200';
+            } else if (q.type === 'multiple') {
+                typeBadgeEl.textContent = 'Вибір кількох правильних відповідей (2 бали)';
+                typeBadgeEl.className = 'inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold bg-purple-50 text-purple-800 border border-purple-200';
+            } else if (q.type === 'matching') {
+                typeBadgeEl.textContent = 'Встановлення відповідності (2 бали)';
+                typeBadgeEl.className = 'inline-flex items-center px-3 py-1 rounded-lg text-sm font-semibold bg-amber-50 text-amber-800 border border-amber-200';
+            }
+
+            questionTextEl.innerHTML = q.question;
+
+            optionsContainerEl.innerHTML = '';
+            feedbackBox.classList.add('hidden');
+            questionMainCol.className = 'lg:col-span-12';
+            submitBtn.classList.remove('hidden');
+            submitBtn.disabled = true;
+            nextBtn.classList.add('hidden');
+
+            if (q.type === 'single') {
+                optionsContainerEl.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
+                renderSingleOptions(q);
+            } else if (q.type === 'multiple') {
+                optionsContainerEl.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
+                renderMultipleOptions(q);
+            } else if (q.type === 'matching') {
+                optionsContainerEl.className = 'space-y-3';
+                renderMatchingOptions(q);
+            }
+        }
+
+        // 1. Рендеринг вибору однієї відповіді
+        function renderSingleOptions(q) {
+            q.options.forEach((opt, idx) => {
+                const label = document.createElement('label');
+                label.className = 'option-card flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:bg-blue-50/60 hover:border-blue-300 cursor-pointer select-none';
+                label.dataset.index = idx;
+
+                label.innerHTML = `
+                    <input type="radio" name="single-opt" value="${idx}" class="mt-1.5 w-5 h-5 text-blue-600 focus:ring-blue-500 border-slate-300 cursor-pointer">
+                    <div class="text-lg sm:text-xl text-slate-900 flex-1">
+                        <span class="font-bold text-blue-800 mr-2">${letters[idx]})</span> ${opt}
+                    </div>
+                `;
+
+                const radio = label.querySelector('input');
+                radio.addEventListener('change', () => {
+                    document.querySelectorAll('#options-container label').forEach(el => {
+                        el.classList.remove('border-blue-600', 'bg-blue-50');
+                        el.classList.add('border-slate-200', 'bg-slate-50/70');
+                    });
+                    label.classList.remove('border-slate-200', 'bg-slate-50/70');
+                    label.classList.add('border-blue-600', 'bg-blue-50');
+                    submitBtn.disabled = false;
+                });
+
+                optionsContainerEl.appendChild(label);
+            });
+        }
+
+        // 2. Рендеринг множинного вибору
+        function renderMultipleOptions(q) {
+            q.options.forEach((opt, idx) => {
+                const label = document.createElement('label');
+                label.className = 'option-card flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-slate-200 bg-slate-50/70 hover:bg-purple-50/60 hover:border-purple-300 cursor-pointer select-none';
+                label.dataset.index = idx;
+
+                label.innerHTML = `
+                    <input type="checkbox" name="multi-opt" value="${idx}" class="mt-1.5 w-5 h-5 rounded text-purple-600 focus:ring-purple-500 border-slate-300 cursor-pointer">
+                    <div class="text-lg sm:text-xl text-slate-900 flex-1">
+                        <span class="font-bold text-purple-800 mr-2">${letters[idx]})</span> ${opt}
+                    </div>
+                `;
+
+                const checkbox = label.querySelector('input');
+                checkbox.addEventListener('change', () => {
+                    if (checkbox.checked) {
+                        label.classList.remove('border-slate-200', 'bg-slate-50/70');
+                        label.classList.add('border-purple-600', 'bg-purple-50');
+                    } else {
+                        label.classList.remove('border-purple-600', 'bg-purple-50');
+                        label.classList.add('border-slate-200', 'bg-slate-50/70');
+                    }
+                    const anyChecked = document.querySelectorAll('input[name="multi-opt"]:checked').length > 0;
+                    submitBtn.disabled = !anyChecked;
+                });
+
+                optionsContainerEl.appendChild(label);
+            });
+        }
+
+        // 3. Рендеринг завдання на відповідність
+        function renderMatchingOptions(q) {
+            const rightBox = document.createElement('div');
+            rightBox.className = 'bg-slate-100 border border-slate-200 rounded-xl p-3.5 sm:p-4 mb-3';
+            rightBox.innerHTML = `<div class="text-xs font-bold text-slate-600 uppercase tracking-wide mb-2">Варіанти для вибору:</div>` +
+                `<div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-1.5">` +
+                q.rightItems.map(item => `<div class="text-base sm:text-lg text-slate-900">${item}</div>`).join('') +
+                `</div>`;
+            optionsContainerEl.appendChild(rightBox);
+
+            const rowsWrapper = document.createElement('div');
+            rowsWrapper.className = 'grid grid-cols-1 md:grid-cols-2 gap-3';
+
+            q.leftItems.forEach((leftText, lIdx) => {
+                const row = document.createElement('div');
+                row.className = 'matching-row flex flex-col justify-between gap-2 p-3.5 rounded-xl border-2 border-slate-200 bg-white';
+                row.dataset.leftIndex = lIdx;
+
+                const optionsHtml = `<option value="" disabled selected>Оберіть літеру...</option>` +
+                    q.rightItems.map((rItem, rIdx) => {
+                        const cleanText = rItem.replace(/<[^>]*>?/gm, '');
+                        return `<option value="${rIdx}">${cleanText}</option>`;
+                    }).join('');
+
+                row.innerHTML = `
+                    <div class="text-base sm:text-lg font-medium text-slate-900">${leftText}</div>
+                    <div>
+                        <select class="match-select w-full p-2.5 text-base font-semibold bg-slate-50 border-2 border-slate-300 rounded-xl text-slate-900 focus:border-blue-600 focus:outline-none cursor-pointer" data-left="${lIdx}">
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                `;
+
+                const selectEl = row.querySelector('select');
+                selectEl.addEventListener('change', () => {
+                    const allSelects = document.querySelectorAll('.match-select');
+                    const allSelected = Array.from(allSelects).every(s => s.value !== '');
+                    submitBtn.disabled = !allSelected;
+                });
+
+                rowsWrapper.appendChild(row);
+            });
+
+            optionsContainerEl.appendChild(rowsWrapper);
+        }
+
+        // Обробка перевірки відповіді
+        submitBtn.addEventListener('click', () => {
+            const q = quizData[currentQuestionIndex];
+            let earnedPoints = 0;
+            let isFullyCorrect = false;
+            let correctAnswerText = '';
+
+            if (q.type === 'single') {
+                const selectedRadio = document.querySelector('input[name="single-opt"]:checked');
+                const userIdx = parseInt(selectedRadio.value, 10);
+                isFullyCorrect = (userIdx === q.correct);
+                earnedPoints = isFullyCorrect ? 1 : 0;
+
+                document.querySelectorAll('#options-container label').forEach(label => {
+                    const idx = parseInt(label.dataset.index, 10);
+                    label.querySelector('input').disabled = true;
+                    label.classList.remove('cursor-pointer', 'hover:bg-blue-50/60');
+
+                    if (idx === q.correct) {
+                        label.className = 'flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950';
+                    } else if (idx === userIdx && !isFullyCorrect) {
+                        label.className = 'flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-950';
+                    } else {
+                        label.className = 'flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-slate-200 bg-slate-50 opacity-60';
+                    }
+                });
+
+                correctAnswerText = `Правильна відповідь: ${letters[q.correct]}) ${q.options[q.correct]}`;
+
+            } else if (q.type === 'multiple') {
+                const checkedBoxes = Array.from(document.querySelectorAll('input[name="multi-opt"]:checked'));
+                const userIndices = checkedBoxes.map(cb => parseInt(cb.value, 10)).sort((a, b) => a - b);
+                const correctIndices = [...q.correct].sort((a, b) => a - b);
+
+                isFullyCorrect = JSON.stringify(userIndices) === JSON.stringify(correctIndices);
+
+                if (isFullyCorrect) {
+                    earnedPoints = 2;
+                } else {
+                    const rightChosen = userIndices.filter(i => correctIndices.includes(i)).length;
+                    const wrongChosen = userIndices.filter(i => !correctIndices.includes(i)).length;
+                    if (rightChosen > 0 && wrongChosen === 0) {
+                        earnedPoints = 1;
+                    }
+                }
+
+                document.querySelectorAll('#options-container label').forEach(label => {
+                    const idx = parseInt(label.dataset.index, 10);
+                    label.querySelector('input').disabled = true;
+                    label.classList.remove('cursor-pointer');
+
+                    const isRight = correctIndices.includes(idx);
+                    const isPicked = userIndices.includes(idx);
+
+                    if (isRight) {
+                        label.className = 'flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-emerald-600 bg-emerald-50 text-emerald-950';
+                    } else if (isPicked && !isRight) {
+                        label.className = 'flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-rose-500 bg-rose-50 text-rose-950';
+                    } else {
+                        label.className = 'flex items-start gap-3.5 p-3.5 sm:p-4 rounded-xl border-2 border-slate-200 bg-slate-50 opacity-60';
+                    }
+                });
+
+                const formattedList = correctIndices.map(i => `${letters[i]}) ${q.options[i]}`).join('; ');
+                correctAnswerText = `Правильні відповіді: ${formattedList}`;
+
+            } else if (q.type === 'matching') {
+                const selects = Array.from(document.querySelectorAll('.match-select'));
+                let correctPairs = 0;
+
+                selects.forEach(sel => {
+                    sel.disabled = true;
+                    const lIdx = parseInt(sel.dataset.left, 10);
+                    const chosenRIdx = parseInt(sel.value, 10);
+                    const rightRIdx = q.correct[lIdx];
+                    const rowEl = sel.closest('.matching-row');
+
+                    if (chosenRIdx === rightRIdx) {
+                        correctPairs++;
+                        rowEl.className = 'matching-row flex flex-col justify-between gap-2 p-3.5 rounded-xl border-2 border-emerald-600 bg-emerald-50';
+                    } else {
+                        rowEl.className = 'matching-row flex flex-col justify-between gap-2 p-3.5 rounded-xl border-2 border-rose-500 bg-rose-50';
+                    }
+                });
+
+                if (correctPairs === 4) {
+                    isFullyCorrect = true;
+                    earnedPoints = 2;
+                } else if (correctPairs >= 2) {
+                    earnedPoints = 1;
+                }
+
+                const pairsSummary = Object.keys(q.correct).map(lKey => {
+                    const rKey = q.correct[lKey];
+                    return `${parseInt(lKey) + 1} — ${letters[rKey]}`;
+                }).join(', ');
+                correctAnswerText = `Правильна відповідність: ${pairsSummary}`;
+            }
+
+            // Оновлення балів та історії
+            totalScore += earnedPoints;
+            scoreCounterEl.textContent = totalScore;
+            userHistory.push({
+                num: q.id,
+                topic: q.topic,
+                earned: earnedPoints,
+                max: (q.type === 'single') ? 1 : 2
+            });
+
+            // Відображення блоку аналізу праворуч на великих екранах, щоб усе поміщалося без скролу
+            questionMainCol.className = 'lg:col-span-7';
+            optionsContainerEl.className = (q.type === 'matching') ? 'space-y-3' : 'grid grid-cols-1 gap-2.5';
+            feedbackBox.classList.remove('hidden');
+
+            if (isFullyCorrect) {
+                feedbackBox.className = 'lg:col-span-5 p-4 sm:p-5 rounded-2xl border-2 border-emerald-400 bg-emerald-50/90 text-base sm:text-lg leading-relaxed';
+                feedbackTitle.innerHTML = `<span class="text-emerald-700">✅ Чудово! Правильно (+${earnedPoints} б.)</span>`;
+            } else if (earnedPoints > 0) {
+                feedbackBox.className = 'lg:col-span-5 p-4 sm:p-5 rounded-2xl border-2 border-amber-400 bg-amber-50/90 text-base sm:text-lg leading-relaxed';
+                feedbackTitle.innerHTML = `<span class="text-amber-800">⚠️ Частково правильно (+${earnedPoints} з 2 б.)</span>`;
+            } else {
+                feedbackBox.className = 'lg:col-span-5 p-4 sm:p-5 rounded-2xl border-2 border-rose-400 bg-rose-50/90 text-base sm:text-lg leading-relaxed';
+                feedbackTitle.innerHTML = `<span class="text-rose-700">❌ Неправильно (0 б.)</span>`;
+            }
+
+            feedbackCorrectAnswer.innerHTML = correctAnswerText;
+            feedbackExplanation.innerHTML = `<strong>Аналіз та пояснення:</strong><br>${q.explanation.replace(/\n/g, '<br>')}`;
+
+            submitBtn.classList.add('hidden');
+            nextBtn.classList.remove('hidden');
+            nextBtn.textContent = (currentQuestionIndex === quizData.length - 1) ? 'Завершити тест' : 'Наступне питання →';
+        });
+
+        // Перехід до наступного питання або фіналу
+        nextBtn.addEventListener('click', () => {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < quizData.length) {
+                loadQuestion();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                showResults();
+            }
+        });
+
+        // Показ фінальних результатів
+        function showResults() {
+            quizContainer.classList.add('hidden');
+            resultsContainer.classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            document.getElementById('final-score').textContent = totalScore;
+            document.getElementById('max-score').textContent = maxPossibleScore;
+            const percent = Math.round((totalScore / maxPossibleScore) * 100);
+            document.getElementById('final-percentage').textContent = `Успішність: ${percent}%`;
+
+            const summaryListEl = document.getElementById('summary-list');
+            summaryListEl.innerHTML = userHistory.map(item => {
+                let badgeColor = 'bg-rose-100 text-rose-800';
+                if (item.earned === item.max) badgeColor = 'bg-emerald-100 text-emerald-800';
+                else if (item.earned > 0) badgeColor = 'bg-amber-100 text-amber-800';
+
+                return `
+                    <div class="flex items-center justify-between p-3 rounded-xl bg-slate-50 border border-slate-200 text-sm sm:text-base">
+                        <span class="font-medium text-slate-800"><strong>#${item.num}.</strong> ${item.topic}</span>
+                        <span class="font-bold px-2.5 py-0.5 rounded-lg ${badgeColor}">${item.earned} / ${item.max} б.</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Перезапуск тесту
+        function restartQuiz() {
+            currentQuestionIndex = 0;
+            totalScore = 0;
+            userHistory = [];
+            scoreCounterEl.textContent = '0';
+            resultsContainer.classList.add('hidden');
+            quizContainer.classList.remove('hidden');
+            loadQuestion();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Запуск при завантаженні сторінки
+        window.onload = loadQuestion;
+    </script>
+</body>
+</html>
